@@ -64,8 +64,13 @@ static HighlightSelectedString *sharedPlugin;
                                              selector:@selector(selectionDidChange:)
                                                  name:NSTextViewDidChangeSelectionNotification
                                                object:nil];
-    
-    _highlightColor = [NSColor colorWithCalibratedRed:1.000 green:0.992 blue:0.518 alpha:1.000];
+    NSString *colorHex = [[NSBundle bundleForClass:self.class] objectForInfoDictionaryKey:@"HighlightColor"];
+    if (colorHex) {
+      _highlightColor = [self colorFromHex:colorHex];
+    }
+    if (!_highlightColor) {
+      _highlightColor = [NSColor colorWithCalibratedRed:0.393 green:0.176 blue:0.188 alpha:1.000];
+    }
     NSMenuItem *editMenuItem = [[NSApp mainMenu] itemWithTitle:@"Edit"];
     
     NSUserDefaults *userD = [NSUserDefaults standardUserDefaults];
@@ -211,6 +216,17 @@ static HighlightSelectedString *sharedPlugin;
         
     }
     
+}
+
+- (NSColor *)colorFromHex:(NSString *)hexColorString {
+  unsigned rgbValue = 0;
+  NSScanner *scanner = [NSScanner scannerWithString:hexColorString];
+  [scanner setScanLocation:1]; // bypass '#' character
+  [scanner scanHexInt:&rgbValue];
+  return [NSColor colorWithRed:((float)((rgbValue & 0xFF0000) >> 16))/255.0
+                         green:((float)((rgbValue & 0x00FF00) >>  8))/255.0
+                          blue:((float)((rgbValue & 0x0000FF) >>  0))/255.0
+                         alpha:1.0];
 }
 
 #pragma mark Accessor Overrides
